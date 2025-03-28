@@ -4,8 +4,13 @@ import fs from "fs";
 import path from "path";
 import puppeteer from "puppeteer";
 import inquirer from "inquirer";
+import { exec } from "child_process";
 
-async function convertLottieToSVG(lottieFilePath: string, outputDir: string) {
+async function convertLottieToSVG(
+  lottieFilePath: string,
+  outputDir: string,
+  convertToMP4: boolean
+) {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
 
@@ -55,19 +60,44 @@ async function convertLottieToSVG(lottieFilePath: string, outputDir: string) {
     await fs.promises.writeFile(outputFilePath, svgData);
   }
 
+  if (convertToMP4) {
+    await convertSVGsToMP4(outputDir);
+  }
+
   await browser.close();
+}
+
+async function convertSVGsToMP4(outputDir: string) {
+  return new Promise<void>((resolve, reject) => {
+    // const ffmpegCommand = `ffmpeg -framerate 240 -i ${path.join(outputDir, '%d.svg')} -c:v libvpx-vp9 -pix_fmt yuva420p -r 60 ${path.join(outputDir, 'out.mp4')} -y`;
+    const ffmpegCommand = `ffmpeg -r 240 -width 512 -height 512 -i ${path.join(
+      outputDir,
+      "%d.svg"
+    )} -c:v libx264 -r 60 ${path.join(outputDir, "out.mp4")} -y`;
+
+    exec(ffmpegCommand, (error, stdout) => {
+      if (error) {
+        console.error(`=== ERROR DURING CONVERSION ===\n${error.message}`);
+        return reject(error);
+      }
+      console.log(stdout);
+      resolve();
+    });
+  });
 }
 
 async function main() {
   const args = process.argv.slice(2);
 
-  let lottieFilePath: string, outputDir: string;
+  let lottieFilePath: string,
+    outputDir: string,
+    convertToMP4 = false;
 
   if (args.length === 2) {
     lottieFilePath = args[0];
     outputDir = args[1];
   } else {
-    console.log("( ˙灬˙ ) Welcome to lottie-converter!")
+    console.log("\x1b[33m( ˙灬˙ )\x1b[0m Welcome to lottie-converter!");
     const answers = await inquirer.prompt([
       {
         type: "input",
@@ -83,14 +113,23 @@ async function main() {
         validate: (input: string) =>
           input ? true : "Output directory is required.",
       },
+      {
+        type: "confirm",
+        name: "convertToMP4",
+        message: "Do you want to convert the frames to MP4?",
+        default: false,
+      },
     ]);
+
+    console.log("\x1b[33m( ^灬^ )\x1b[0m Converting..!");
 
     lottieFilePath = answers.lottieFilePath;
     outputDir = answers.outputDir;
+    convertToMP4 = answers.convertToMP4;
   }
 
   try {
-    await convertLottieToSVG(lottieFilePath, outputDir);
+    await convertLottieToSVG(lottieFilePath, outputDir, convertToMP4);
     console.log(
       "\n\x1b[1m\x1b[34m!\x1b[0m\x1b[1m All frames converted!\x1b[0m"
     );

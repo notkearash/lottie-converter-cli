@@ -1,4 +1,4 @@
-# lottie-converter-js
+# lottie-converter-cli
 
 ## Getting Started
 
