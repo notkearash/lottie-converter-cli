@@ -4,7 +4,7 @@
   "description": "install dependencies using: ```npm install```",
   "main": "index.cjs",
   "scripts": {
-    "start": "node dist/index.js || echo \"Build the project first (npm run build)\"",
+    "start": "node dist/index.js || echo \"\n\nBuild the project first [ npm run build ]\"",
     "build": "tsc && cpx \"src/lib/**/*\" dist/lib",
     "dev": "ts-node src/index.ts",
     "dev:watch": "nodemon src/index.ts",
@@ -12,7 +12,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
-    "lottie-converter": "node dist/index.js || echo \"Build the project first (npm run build)\""
+    "lottie-converter": "node dist/index.js || echo \"\n\nBuild the project first [ npm run build ]\""
   },
   "keywords": [],
   "author": "",

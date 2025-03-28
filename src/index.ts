@@ -6,6 +6,8 @@ import puppeteer from "puppeteer";
 import inquirer from "inquirer";
 import { exec } from "child_process";
 
+process.on("SIGINT", () => process.exit(0));
+
 async function convertLottieToSVG(
   lottieFilePath: string,
   outputDir: string,
@@ -69,7 +71,6 @@ async function convertLottieToSVG(
 
 async function convertSVGsToMP4(outputDir: string) {
   return new Promise<void>((resolve, reject) => {
-    // const ffmpegCommand = `ffmpeg -framerate 240 -i ${path.join(outputDir, '%d.svg')} -c:v libvpx-vp9 -pix_fmt yuva420p -r 60 ${path.join(outputDir, 'out.mp4')} -y`;
     const ffmpegCommand = `ffmpeg -r 240 -width 512 -height 512 -i ${path.join(
       outputDir,
       "%d.svg"
@@ -84,6 +85,27 @@ async function convertSVGsToMP4(outputDir: string) {
       resolve();
     });
   });
+}
+
+async function validateInputs(lottieFilePath: string, outputDir: string) {
+  try {
+    await fs.promises.access(lottieFilePath, fs.constants.F_OK);
+  } catch {
+    throw new Error(`\n\x1b[31m!\x1b[0m Lottie file not found: ${lottieFilePath}`);
+  }
+
+  try {
+    const data = await fs.promises.readFile(lottieFilePath, "utf8");
+    JSON.parse(data);
+  } catch (err) {
+    throw new Error(`\n\x1b[31m!\x1b[0m Invalid Lottie JSON: ${(err as Error).message}`);
+  }
+
+  try {
+    await fs.promises.access(outputDir, fs.constants.F_OK);
+  } catch {
+    await fs.promises.mkdir(outputDir, { recursive: true });
+  }
 }
 
 async function main() {
@@ -129,12 +151,13 @@ async function main() {
   }
 
   try {
+    await validateInputs(lottieFilePath, outputDir);
     await convertLottieToSVG(lottieFilePath, outputDir, convertToMP4);
     console.log(
       "\n\x1b[1m\x1b[34m!\x1b[0m\x1b[1m All frames converted!\x1b[0m"
     );
   } catch (err) {
-    console.error("Conversion failed:", err);
+    console.error("\x1b[31m( x灬x )\x1b[0m Conversion failed:", err);
   }
 }
 
