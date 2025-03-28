@@ -1,0 +1,32 @@
+{
+  "name": "lottie-converter-cli",
+  "version": "1.0.0",
+  "description": "install dependencies using: ```npm install```",
+  "main": "index.cjs",
+  "scripts": {
+    "start": "node dist/index.js || echo \"Build the project first (npm run build)\"",
+    "build": "tsc && cpx \"src/lib/**/*\" dist/lib",
+    "dev": "ts-node src/index.ts",
+    "dev:watch": "nodemon src/index.ts",
+    "convert:mp4": "command -v ffmpeg && ffmpeg -r 240 -width 512 -height 512 -i out/%d.svg -c:v libx264 -r 60 out.mp4 -y || echo \"You need FFMPEG for this action\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "lottie-converter": "node dist/index.js || echo \"Build the project first (npm run build)\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "GPL-3.0-only",
+  "dependencies": {
+    "@types/node": "^20.14.2",
+    "inquirer": "^8.2.6",
+    "puppeteer": "^22.11.2",
+    "typescript": "^5.4.5"
+  },
+  "devDependencies": {
+    "@types/inquirer": "^9.0.7",
+    "cpx": "^1.5.0",
+    "nodemon": "^3.1.3",
+    "ts-node": "^10.9.2"
+  }
+}
